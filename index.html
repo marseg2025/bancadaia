@@ -22,6 +22,12 @@
   --dim:#7a939d;
   --dimmer:#4d666f;
   --ok:#7fb87a;
+  /* LCD do DT-830: vidro verde-acinzentado, segmentos quase pretos */
+  --lcd:#b9c6ae;
+  --lcd-deep:#a9b79f;
+  --seg:#232b20;
+  --seg-dim:#5d6a56;
+  --seg-ghost:rgba(35,43,32,.10);
   --label:"Saira Condensed",Arial Narrow,sans-serif;
   --body:"IBM Plex Sans",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
@@ -35,6 +41,7 @@ body{
   font-size:14px;
   line-height:1.5;
   -webkit-font-smoothing:antialiased;
+  overflow:hidden;
 }
 .lab{font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;font-weight:600}
 
@@ -42,32 +49,35 @@ body{
 #app{display:grid;grid-template-rows:auto 1fr;height:100%}
 
 header{
-  display:flex;align-items:center;gap:16px;
-  padding:10px 16px;
+  display:flex;align-items:center;gap:14px;
+  padding:9px 16px;
   background:linear-gradient(180deg,#182931,#101c22);
   border-bottom:1px solid var(--rule);
+  flex-wrap:wrap;
 }
-.brand{font-family:var(--label);font-weight:700;font-size:17px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber)}
+.brand{font-family:var(--label);font-weight:700;font-size:17px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);white-space:nowrap}
 .brand span{color:var(--dimmer);font-weight:500}
 #taskTitle{
-  flex:1;min-width:80px;background:var(--panel-2);border:1px solid var(--rule-soft);
+  flex:1;min-width:120px;background:var(--panel-2);border:1px solid var(--rule-soft);
   color:var(--ink);font-family:var(--body);font-size:14px;padding:6px 10px;border-radius:2px;
 }
 #taskTitle:focus{outline:none;border-color:var(--amber-dim)}
 .hdr-actions{display:flex;gap:6px;flex-wrap:wrap}
 
-main{display:grid;grid-template-columns:290px 1fr;min-height:0}
+main{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:0;height:100%}
 #rack{
   border-right:1px solid var(--rule);
   background:var(--panel-2);
   overflow-y:auto;padding:14px 12px 40px;
 }
-#bench{overflow-y:auto;padding:16px 20px 60px;min-width:0}
 
-/* ---------- generic bits ---------- */
-.sect{margin-bottom:22px}
+/* coluna central: display em cima, console fixo embaixo */
+#benchCol{display:flex;flex-direction:column;min-height:0;min-width:0}
+
+/* ---------- generic ---------- */
+.sect{margin-bottom:20px}
 .sect-hd{
-  display:flex;align-items:center;gap:8px;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;margin-bottom:9px;
   font-family:var(--label);text-transform:uppercase;letter-spacing:.16em;
   font-size:11px;font-weight:600;color:var(--dim);
 }
@@ -93,6 +103,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--amber-di
 textarea{resize:vertical;line-height:1.55}
 .hint{font-size:11px;color:var(--dimmer);line-height:1.45}
 a{color:var(--phos)}
+.row{display:flex;gap:8px;align-items:center}
 
 /* ---------- channel strip ---------- */
 .chan{
@@ -122,89 +133,177 @@ a{color:var(--phos)}
 .fld label{display:block;font-family:var(--label);font-size:9.5px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--dim);margin-bottom:3px}
 
-/* ---------- the meter (signature) ---------- */
+/* ---------- meters ---------- */
 .meter{margin-top:8px}
 .meter-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
 .meter-cap{font-family:var(--label);font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
-.readout{
-  font-family:var(--mono);font-weight:600;font-size:12px;color:var(--amber);
-  font-variant-numeric:tabular-nums;
-}
+.readout{font-family:var(--mono);font-weight:600;font-size:12px;color:var(--amber);font-variant-numeric:tabular-nums}
 .readout.over{color:var(--over)}
-.scale{
-  height:9px;background:#080f13;border:1px solid var(--rule-soft);border-radius:1px;
-  position:relative;overflow:hidden;
-}
-.scale:before{ /* tick marks silkscreened on the glass */
-  content:"";position:absolute;inset:0;z-index:2;
-  background:repeating-linear-gradient(90deg,transparent 0 24.9%,var(--rule-soft) 24.9% 25.1%);
-}
+.scale{height:9px;background:#080f13;border:1px solid var(--rule-soft);border-radius:1px;position:relative;overflow:hidden}
+.scale:before{content:"";position:absolute;inset:0;z-index:2;
+  background:repeating-linear-gradient(90deg,transparent 0 24.9%,var(--rule-soft) 24.9% 25.1%)}
 .fill{height:100%;background:var(--amber);width:0;transition:width .25s ease}
 .fill.warn{background:#e0812f}
 .fill.over{background:var(--over)}
 .meter-sub{font-family:var(--mono);font-size:9.5px;color:var(--dimmer);margin-top:3px}
 
-/* ---------- files & turns ---------- */
+/* ---------- files ---------- */
 .file{
   display:flex;align-items:center;gap:8px;background:var(--panel);
   border:1px solid var(--rule-soft);border-radius:2px;padding:6px 9px;margin-bottom:5px;
 }
 .file .nm{font-family:var(--mono);font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .file .tk{font-family:var(--mono);font-size:10px;color:var(--dim)}
-.pill{
-  font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:8px;
-  border:1px solid var(--rule);color:var(--dim);
+.pill{font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:8px;border:1px solid var(--rule);color:var(--dim)}
+
+/* =========================================================
+   O DISPLAY — LCD do DT-830 emoldurado na bancada.
+   A conversa acontece dentro do vidro do multímetro.
+   ========================================================= */
+#display{
+  flex:1;min-height:0;display:flex;flex-direction:column;
+  margin:14px 18px 0;
+  background:linear-gradient(180deg,#18262e,#0e181e);
+  border:1px solid var(--rule);
+  border-radius:6px;
+  padding:9px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 4px 14px rgba(0,0,0,.4);
 }
+/* faixa de anunciadores, como o topo do LCD (AUTO · HOLD · DC) */
+#annun{
+  flex:none;display:flex;align-items:center;gap:12px;
+  padding:4px 10px 7px;
+}
+#annun .an{
+  font-family:var(--label);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--dimmer);
+}
+#annun .an.lit{color:var(--amber)}
+#annun .spacer{flex:1}
+#annun .tk{font-family:var(--mono);font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
+/* o vidro */
+#lcd{
+  flex:1;min-height:0;overflow-y:auto;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,.14), transparent 55%),
+    linear-gradient(180deg,var(--lcd),var(--lcd-deep));
+  border:1px solid #05090b;
+  border-radius:3px;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.35);
+  padding:14px 16px 18px;
+  scroll-behavior:smooth;
+}
+@media (prefers-reduced-motion:reduce){ #lcd{scroll-behavior:auto} }
+
+/* estado vazio: o multímetro em repouso */
+.lcd-idle{
+  height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  color:var(--seg-dim);
+}
+.lcd-idle .mestre{width:min(240px,60%);height:auto;display:block}
+/* as Zzz respiram, uma de cada vez, como um sono de verdade */
+.lcd-idle .zzz path{animation:zdorme 3s ease-in-out infinite;opacity:.25}
+.lcd-idle .zzz .z2{animation-delay:1s}
+.lcd-idle .zzz .z3{animation-delay:2s}
+@keyframes zdorme{0%,100%{opacity:.25}50%{opacity:1}}
+.lcd-idle p{font-family:var(--body);font-size:12.5px;max-width:420px;text-align:center;color:var(--seg-dim)}
+
+/* turnos dentro do vidro: tinta escura, sem cartões pesados */
 .turn{
-  background:var(--panel);border:1px solid var(--rule-soft);border-left:2px solid var(--rule);
-  border-radius:2px;margin-bottom:8px;
+  border-left:3px solid rgba(35,43,32,.25);
+  background:var(--seg-ghost);
+  border-radius:2px;
+  margin-bottom:10px;
+  max-width:100%;
 }
-.turn.pinned{border-left-color:var(--amber)}
-.turn.user{border-left-color:var(--phos)}
-.turn-hd{display:flex;align-items:center;gap:8px;padding:6px 9px;font-size:11px}
-.turn-hd .who{font-family:var(--label);letter-spacing:.1em;text-transform:uppercase;font-weight:600;font-size:11px}
-.turn-hd .meta{color:var(--dimmer);font-family:var(--mono);font-size:10px;flex:1}
+.turn.user{border-left-color:rgba(20,60,70,.55);background:rgba(20,60,70,.08)}
+.turn.pinned{border-left-color:rgba(35,43,32,.65)}
+.turn.user.pinned{border-left-color:rgba(15,75,90,.8)}
+.turn-hd{display:flex;align-items:center;gap:8px;padding:6px 10px 2px;font-size:11px;flex-wrap:wrap}
+.turn-hd .who{
+  font-family:var(--label);letter-spacing:.14em;text-transform:uppercase;font-weight:700;font-size:10.5px;
+  color:var(--seg);
+}
+.turn.user .turn-hd .who{color:#0f4b5a}
+.turn-hd .meta{color:var(--seg-dim);font-family:var(--mono);font-size:9.5px;flex:1;min-width:60px}
+.turn-hd button{
+  background:transparent;border-color:rgba(35,43,32,.3);color:var(--seg-dim);
+}
+.turn-hd button:hover{color:var(--seg);border-color:var(--seg)}
 .turn-body{
-  padding:0 10px 10px;font-family:var(--mono);font-size:12px;line-height:1.6;
-  white-space:pre-wrap;word-break:break-word;max-height:340px;overflow:auto;
+  padding:2px 12px 10px;font-family:var(--mono);font-size:12.5px;line-height:1.6;
+  white-space:pre-wrap;word-break:break-word;color:var(--seg);
 }
-.turn-body.collapsed{max-height:74px;overflow:hidden;
+.turn-body.collapsed{max-height:74px;overflow:hidden;cursor:pointer;
   -webkit-mask-image:linear-gradient(180deg,#000 40%,transparent);mask-image:linear-gradient(180deg,#000 40%,transparent)}
 
-/* ---------- console ---------- */
-#console{
-  position:sticky;bottom:0;background:linear-gradient(180deg,rgba(11,20,24,.6),var(--bay) 22%);
-  padding-top:10px;margin-top:14px;
+/* júri dentro do vidro */
+#juryWrap{margin-bottom:10px}
+#juryWrap .jury-hd{
+  font-family:var(--label);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--seg-dim);margin-bottom:7px;
 }
+#jury{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.jcol{border:1px solid rgba(35,43,32,.3);border-radius:2px;background:var(--seg-ghost);display:flex;flex-direction:column}
+.jcol-hd{display:flex;align-items:center;gap:6px;padding:6px 9px;border-bottom:1px solid rgba(35,43,32,.2)}
+.jcol-hd .who{font-family:var(--label);text-transform:uppercase;letter-spacing:.12em;font-size:10.5px;color:var(--seg);flex:1;font-weight:700}
+.jcol-hd button{background:transparent;border-color:rgba(35,43,32,.3);color:var(--seg-dim)}
+.jcol-hd button:hover{color:var(--seg);border-color:var(--seg)}
+.jcol-body{padding:9px;font-family:var(--mono);font-size:11.5px;line-height:1.6;white-space:pre-wrap;
+  word-break:break-word;max-height:380px;overflow:auto;flex:1;color:var(--seg)}
+.jcol.err .jcol-hd .who{color:#8a2f1d}
+.jcol.err .jcol-body{color:#8a2f1d}
+
+.spin{display:inline-block;width:9px;height:9px;border:1.5px solid var(--seg-dim);
+  border-top-color:var(--seg);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* =========================================================
+   CONSOLE — fixo embaixo, sempre à mão
+   ========================================================= */
+#console{flex:none;padding:12px 18px 14px}
 .console-inner{border:1px solid var(--rule);border-radius:3px;background:var(--panel-2);padding:10px}
 .mode-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
 .mode-btn{background:transparent;border-color:var(--rule-soft);color:var(--dim)}
 .mode-btn.sel{background:var(--rule-soft);border-color:var(--amber-dim);color:var(--amber)}
-#prompt{min-height:74px;font-size:13px}
-.send-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.prompt-row{display:flex;gap:8px;align-items:flex-end}
+#prompt{
+  flex:1;min-height:44px;max-height:180px;font-size:13px;resize:none;overflow-y:auto;
+}
+#btnSend{padding:10px 18px;font-size:12px}
+.send-row{display:flex;gap:8px;align-items:center;margin-top:7px;flex-wrap:wrap}
 .send-row .spacer{flex:1}
 
-/* ---------- jury ---------- */
-#jury{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-bottom:14px}
-.jcol{border:1px solid var(--rule-soft);border-radius:3px;background:var(--panel);display:flex;flex-direction:column}
-.jcol-hd{display:flex;align-items:center;gap:6px;padding:7px 9px;border-bottom:1px solid var(--rule-soft)}
-.jcol-hd .who{font-family:var(--label);text-transform:uppercase;letter-spacing:.1em;font-size:11px;color:var(--amber);flex:1}
-.jcol-body{padding:9px;font-family:var(--mono);font-size:11.5px;line-height:1.6;white-space:pre-wrap;
-  word-break:break-word;max-height:420px;overflow:auto;flex:1}
-.jcol.err .jcol-hd .who{color:var(--over)}
-
-.empty{border:1px dashed var(--rule-soft);border-radius:3px;padding:16px;color:var(--dimmer);font-size:12px}
+.empty{border:1px dashed var(--rule-soft);border-radius:3px;padding:14px;color:var(--dimmer);font-size:12px}
 .warn-box{border:1px solid var(--amber-dim);border-left:3px solid var(--amber);background:#1a1408;
   padding:9px 11px;border-radius:2px;font-size:12px;margin-bottom:12px;color:#e8d3ab}
-.row{display:flex;gap:8px;align-items:center}
-.spin{display:inline-block;width:9px;height:9px;border:1.5px solid var(--amber-dim);
-  border-top-color:var(--amber);border-radius:50%;animation:sp .7s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- manual ---------- */
+.modal-veil{position:fixed;inset:0;background:rgba(4,9,11,.85);z-index:60;display:flex;padding:5vh 5vw}
+.manual-box{
+  background:var(--panel);border:1px solid var(--rule);border-radius:3px;flex:1;
+  display:flex;flex-direction:column;overflow:hidden;max-width:860px;margin:0 auto;
+}
+.manual-hd{flex:none;display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--rule-soft)}
+.manual-body{flex:1;overflow-y:auto;padding:16px 20px 30px;font-size:13px;line-height:1.65}
+.manual-body h3{
+  font-family:var(--label);text-transform:uppercase;letter-spacing:.14em;font-size:13px;
+  color:var(--amber);margin:22px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--rule-soft);
+}
+.manual-body h3:first-child{margin-top:0}
+.manual-body ol{margin:6px 0 10px 22px}
+.manual-body li{margin-bottom:5px}
+.manual-body code{font-family:var(--mono);font-size:12px;background:var(--panel-2);padding:1px 5px;border-radius:2px;border:1px solid var(--rule-soft)}
+.manual-body .mnote{border-left:3px solid var(--phos);background:rgba(107,184,204,.06);padding:8px 11px;border-radius:2px;margin:8px 0;font-size:12.5px}
+.manual-body .mwarn{border-left:3px solid var(--over);background:rgba(217,85,63,.07);padding:8px 11px;border-radius:2px;margin:8px 0;font-size:12.5px}
+
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media(max-width:860px){
-  main{grid-template-columns:1fr;grid-template-rows:auto 1fr}
-  #rack{border-right:none;border-bottom:1px solid var(--rule);max-height:44vh}
-  header{flex-wrap:wrap}
+@media(max-width:900px){
+  main{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+  #rack{border-right:none;border-bottom:1px solid var(--rule);max-height:40vh}
+  #display{margin:10px 10px 0}
+  #console{padding:10px}
+  .lcd-idle .digits{font-size:40px}
 }
 </style>
 </head>
@@ -214,7 +313,8 @@ a{color:var(--phos)}
     <div class="brand">Bancada<span>IA</span></div>
     <input id="taskTitle" placeholder="Nome da tarefa (ex.: MotorV8_EA v2.11 — trailing stop)">
     <div class="hdr-actions">
-      <button id="btnImg" class="ghost" title="gerar imagem com IA — Pollinations, sem chave">Imagem</button>
+      <button id="btnManual" class="ghost" title="como conseguir as chaves de API">Manual</button>
+      <button id="btnImg" class="ghost" title="gerar imagem com IA">Imagem</button>
       <button id="btnExport" class="ghost">Exportar</button>
       <button id="btnImport" class="ghost">Importar</button>
       <button id="btnWipe" class="ghost">Zerar</button>
@@ -228,9 +328,10 @@ a{color:var(--phos)}
         <div class="sect-hd">Canais</div>
         <div id="chans"></div>
         <p class="hint" style="margin-top:8px">
-          Todo canal deste rack aceita chamada direta do navegador — sem proxy, sem CORS.
-          As chaves ficam só no <code>localStorage</code> deste navegador; nunca commite este arquivo com chaves dentro.
-          Para IA sem API grátis (Claude, ChatGPT), use a <b>Ponte</b>.
+          Cada pessoa usa a própria chave, criada de graça no site de cada IA —
+          clique em <b>Manual</b> lá em cima para o passo a passo.
+          As chaves ficam só no <code>localStorage</code> deste navegador;
+          nunca commite este arquivo com chaves dentro.
         </p>
       </div>
 
@@ -238,10 +339,7 @@ a{color:var(--phos)}
         <div class="sect-hd">Carga do contexto</div>
         <div id="loadMeters"></div>
       </div>
-    </aside>
 
-    <!-- ============ BENCH ============ -->
-    <section id="bench">
       <div class="sect">
         <div class="sect-hd">Perfil do projeto</div>
         <div class="mode-row" id="perfis"></div>
@@ -250,7 +348,7 @@ a{color:var(--phos)}
 
       <div class="sect">
         <div class="sect-hd">Missão</div>
-        <textarea id="brief" style="min-height:64px" placeholder="O que precisa ser feito, no total. Isso vai em toda requisição, para qualquer canal.&#10;Ex.: EA de reversão em M15. Preciso trocar o trailing stop fixo por um baseado em ATR, sem quebrar a lógica de entrada."></textarea>
+        <textarea id="brief" style="min-height:64px" placeholder="O que precisa ser feito, no total. Vai em toda requisição, para qualquer canal."></textarea>
       </div>
 
       <div class="sect">
@@ -260,15 +358,26 @@ a{color:var(--phos)}
         </div>
         <div id="files"></div>
       </div>
+    </aside>
 
-      <div class="sect">
-        <div class="sect-hd">Histórico <button id="btnClearTurns" class="tiny ghost" title="apaga todas as perguntas e respostas — missão, arquivos e chaves ficam">× apagar tudo</button></div>
-        <div id="turns"></div>
-      </div>
-
-      <div id="juryWrap" style="display:none">
-        <div class="sect-hd">Júri</div>
-        <div id="jury"></div>
+    <!-- ============ BANCADA: DISPLAY + CONSOLE ============ -->
+    <section id="benchCol">
+      <div id="display">
+        <div id="annun">
+          <span class="an" data-an="router">Roteador</span>
+          <span class="an" data-an="jury">Júri</span>
+          <span class="an" data-an="pipeline">Pipeline</span>
+          <span class="spacer"></span>
+          <span id="ctxTag" class="tk"></span>
+          <button id="btnClearTurns" class="tiny ghost" title="apaga perguntas e respostas — missão, arquivos e chaves ficam">× limpar</button>
+        </div>
+        <div id="lcd">
+          <div id="juryWrap" style="display:none">
+            <div class="jury-hd">Júri — compare e adote uma resposta</div>
+            <div id="jury"></div>
+          </div>
+          <div id="turns"></div>
+        </div>
       </div>
 
       <div id="console">
@@ -281,13 +390,14 @@ a{color:var(--phos)}
             <span id="modeHint" class="hint" style="margin-left:4px"></span>
           </div>
           <div id="routerPick" class="mode-row"></div>
-          <textarea id="prompt" placeholder="Sua pergunta ou instrução para esta rodada."></textarea>
+          <div class="prompt-row">
+            <textarea id="prompt" rows="1" placeholder="Escreva aqui — Enter envia, Shift+Enter quebra linha"></textarea>
+            <button id="btnSend" class="primary">Enviar</button>
+          </div>
           <div class="send-row">
             <span id="status" class="hint"></span>
             <span class="spacer"></span>
-            <span id="ctxTag" class="pill"></span>
-            <button id="btnPonte" class="ghost" title="usar uma IA que não tem API — Claude, ChatGPT — por copiar e colar">Ponte</button>
-            <button id="btnSend" class="primary">Enviar</button>
+            <button id="btnPonte" class="tiny ghost" title="usar uma IA sem API — Claude, ChatGPT — por copiar e colar">Ponte</button>
           </div>
         </div>
       </div>
@@ -303,8 +413,6 @@ a{color:var(--phos)}
    Dois formatos só: 'gemini' e 'openai' (todo o resto é OpenAI-compatible).
    Modelos são SUGESTÕES — os IDs mudam toda hora, o campo é texto livre.
    ========================================================================= */
-/* rpd = requisições por dia. É o que realmente acaba primeiro.
-   Medido no painel do AI Studio em 16/07/2026; editável em cada canal. */
 const PROVIDERS = {
   gemini: {
     name:"Gemini", kind:"gemini",
@@ -335,10 +443,7 @@ const PROVIDERS = {
   }
 };
 
-/* ===================== PERFIS =====================
-   O que ensina o modelo a não escrever MQL4 é ruído num arquivo de JS.
-   Cada projeto tem o seu; o perfil vai junto no export da tarefa.
-   ================================================== */
+/* ===================== PERFIS ===================== */
 const BASE = `Você é um assistente de engenharia trabalhando numa tarefa de código contínua.
 Vários modelos diferentes revezam nessa mesma tarefa; o histórico abaixo pode conter respostas de outros modelos.
 - Se for alterar código, devolva o trecho completo alterado (função ou bloco inteiro), nunca "..." no meio.
@@ -397,16 +502,9 @@ for (const id in PROVIDERS) S.chans[id] = {on:false, key:"", model:PROVIDERS[id]
 const $ = s => document.querySelector(s);
 const uid = () => Math.random().toString(36).slice(2,9);
 const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-// Código dá ~3,5 chars por token. Estimativa grosseira, mas serve para o que importa:
-// saber se cabe antes de tomar 429 na cara.
 const tok = s => Math.ceil((s||"").length / 3.5);
 
-/* ===================== CONTADOR DIÁRIO =====================
-   O Google zera a cota à meia-noite UTC-8 — que em São Paulo cai às 5h
-   da manhã. Esta contagem é local e conta só chamadas que deram certo;
-   é uma estimativa, não a verdade do provedor. Serve pra você saber que
-   está no fim antes de tomar o 429.
-   ========================================================== */
+/* ===================== CONTADOR DIÁRIO ===================== */
 const apiDay = () => new Date(Date.now() - 8*3600*1000).toISOString().slice(0,10);
 function usedToday(id){
   const u = S.chans[id].usage;
@@ -418,7 +516,6 @@ function bump(id){
   C.usage.n++; save();
 }
 const rpdOf = id => Number(S.chans[id].rpd) || PROVIDERS[id].rpd;
-/* Blindagem: modelo apagado pelo usuário é string vazia, não undefined. */
 const modelOf = id => (S.chans[id].model || "").trim();
 
 function save(){ try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){ setStatus("localStorage cheio — exporte e zere.", true); } }
@@ -427,8 +524,8 @@ function load(){
     const raw = localStorage.getItem(LS); if(!raw) return;
     const p = JSON.parse(raw);
     S = Object.assign(S, p);
-    delete S.proxy;                                     // sobra de versões antigas
-    for (const id in S.chans) if (!PROVIDERS[id]) delete S.chans[id];   // canais aposentados
+    delete S.proxy;
+    for (const id in S.chans) if (!PROVIDERS[id]) delete S.chans[id];
     for (const id in PROVIDERS){
       S.chans[id] = Object.assign({on:false,key:"",model:PROVIDERS[id].models[0] || ""}, S.chans[id]||{});
       if (typeof S.chans[id].model !== "string") S.chans[id].model = PROVIDERS[id].models[0] || "";
@@ -436,10 +533,7 @@ function load(){
   }catch(e){}
 }
 
-/* ========================= MONTAGEM DO CONTEXTO =========================
-   O ponto central de tudo: o estado é meu, não do provedor.
-   Qualquer canal recebe exatamente o mesmo pacote.
-   ======================================================================= */
+/* ========================= CONTEXTO ========================= */
 function buildContext(userText){
   const parts = [];
   if (S.brief.trim()) parts.push("## Missão\n" + S.brief.trim());
@@ -461,10 +555,7 @@ function ctxTokens(){
   return tok(sysTxt()) + buildContext($("#prompt").value).reduce((a,m)=>a+tok(m.content),0);
 }
 
-/* ========================= TRANSPORTE =========================
-   A chave vai em header, nunca na URL: query string vaza para o histórico
-   do navegador e para o log de qualquer proxy no caminho.
-   ============================================================== */
+/* ========================= TRANSPORTE ========================= */
 function authHeaders(id){
   const P = PROVIDERS[id], k = S.chans[id].key.trim();
   if (P.kind === "gemini") return {"x-goog-api-key": k};
@@ -500,8 +591,6 @@ async function xfer(url, opts){
   return data;
 }
 
-/* Lista os modelos que ESTA chave enxerga hoje. Vale mais que qualquer
-   lista que eu chutasse: os IDs mudam sem aviso. */
 async function probeChannel(id){
   syncKeys();
   const P = PROVIDERS[id], k = S.chans[id].key.trim();
@@ -514,25 +603,19 @@ async function probeChannel(id){
       .filter(m => (m.supportedGenerationMethods||[]).includes("generateContent"))
       .map(m => (m.name||"").replace(/^models\//,""));
   } else if (Array.isArray(data)){
-    list = data.map(m => m.id || m.name);          // GitHub Models devolve array cru
+    list = data.map(m => m.id || m.name);
   } else {
-    list = (data.data||[]).map(m=>m.id);           // OpenAI-compat
+    list = (data.data||[]).map(m=>m.id);
   }
   list = list.filter(Boolean).sort();
   if (!list.length) throw new Error("A chave funciona, mas nenhum modelo de texto voltou.");
   return list;
 }
 
-/* ===================== DIAGNÓSTICO =====================
-   Mede o caminho inteiro em vez de adivinhar qual peça falhou:
-   o que está no estado, o GET simples e o POST real, separados.
-   ====================================================== */
+/* ===================== DIAGNÓSTICO ===================== */
 const maskKey = k => k.length < 12 ? "(curta demais)" : `${k.slice(0,6)}…${k.slice(-4)}`;
 const maskUrl = u => u.replace(/key=([^&]{0,6})[^&]*/, (m,a)=>`key=${a}…`);
 
-/* O gerenciador de senhas do navegador pode preencher um type=password sem
-   disparar 'input' — o campo mostra bolinhas e o estado fica vazio. Antes de
-   qualquer chamada, o DOM manda. */
 function syncKeys(){
   document.querySelectorAll("#chans .chan").forEach(el=>{
     const id = el.dataset.id, f = el.querySelector(".k");
@@ -579,7 +662,7 @@ async function diagnose(id){
 
 function showDiag(txt){
   const d = document.createElement("div");
-  d.style.cssText = "position:fixed;inset:0;background:rgba(4,9,11,.85);z-index:60;display:flex;padding:6vh 6vw";
+  d.className = "modal-veil";
   d.innerHTML = `<div style="background:var(--panel);border:1px solid var(--amber-dim);border-radius:3px;flex:1;
       display:flex;flex-direction:column;padding:14px;gap:10px;overflow:hidden">
     <div class="lab" style="color:var(--amber);font-size:12px">Diagnóstico</div>
@@ -593,9 +676,6 @@ function showDiag(txt){
   d.querySelector("#_dc").onclick = ()=>navigator.clipboard.writeText(txt);
 }
 
-/* A lista do /models MENTE: ela inclui modelos que a sua chave enxerga mas
-   não pode chamar (depreciados para contas novas, ou pagos). A única prova
-   é um POST de verdade. Testa o topo do ranking até um responder. */
 async function autoPick(id, list){
   const P = PROVIDERS[id], C = S.chans[id];
   const util = list.filter(m=>!/image|tts|audio|embed|robotics|lyria|banana|computer-use|whisper|guard|vision/i.test(m));
@@ -611,7 +691,6 @@ async function autoPick(id, list){
       await callChannel(id, [{role:"user", content:"Responda só: ok"}]);
       return {model:m, rejeitados};
     }catch(e){
-      // Só continua se o problema for O MODELO. Erro de chave ou rede para tudo.
       if (/no longer available|is not found|not supported|não existe|é pago|payment/i.test(e.message)){
         rejeitados.push(`${m} — ${e.message.slice(0,50)}`);
         continue;
@@ -623,6 +702,7 @@ async function autoPick(id, list){
   C.model = antes;
   throw new Error("Nenhum dos 3 melhores respondeu. " + rejeitados.join(" | "));
 }
+
 async function callChannel(id, msgs, signal){
   const P = PROVIDERS[id], C = S.chans[id];
   if (!C.key.trim()) throw new Error("Sem chave configurada.");
@@ -630,9 +710,6 @@ async function callChannel(id, msgs, signal){
 
   let url, opts;
   if (P.kind === "gemini"){
-    // Chave na query E no header. As chaves novas (formato AQ.*) só foram
-    // vistas funcionando pela query; o header fica de redundância, caso o
-    // Google mude de ideia de novo. Query em fetch não entra no histórico.
     url = P.url(modelOf(id), C.key.trim());
     opts = {
       method:"POST",
@@ -640,8 +717,6 @@ async function callChannel(id, msgs, signal){
       body: JSON.stringify({
         systemInstruction:{parts:[{text:sysTxt()}]},
         contents: msgs.map(m=>({role: m.role==="assistant" ? "model" : "user", parts:[{text:m.content}]})),
-        // Os Gemini 3.x pensam antes de responder, e o pensamento sai DESTE
-        // orçamento. Com 8k, um EA longo estoura no raciocínio e volta vazio.
         generationConfig:{temperature:0.2, maxOutputTokens:32768}
       })
     };
@@ -664,7 +739,6 @@ async function callChannel(id, msgs, signal){
   if (P.kind === "gemini"){
     const c = data.candidates?.[0];
     if (!c) throw new Error("Resposta vazia" + (data.promptFeedback ? " (bloqueada pelo filtro)" : ""));
-    // parts marcadas com thought:true são o raciocínio, não a resposta
     const out = (c.content?.parts || []).filter(p=>!p.thought).map(p=>p.text||"").join("");
     if (!out){
       if (c.finishReason === "MAX_TOKENS")
@@ -688,12 +762,7 @@ async function callChannel(id, msgs, signal){
   }
 }
 
-/* ===================== PONTE MANUAL =====================
-   Nem toda IA tem API grátis — o Claude não tem nenhuma. Mas se você já
-   paga uma assinatura de chat, o que falta não é o modelo: é o contexto
-   atravessar. A ponte empacota o mesmo pacote que vai pra API e devolve
-   a resposta como um turno igual aos outros.
-   ======================================================== */
+/* ===================== PONTE MANUAL ===================== */
 function pacoteTxt(){
   const msgs = buildContext($("#prompt").value.trim());
   const p = ["=== INSTRUÇÕES ===", sysTxt(), ""];
@@ -707,7 +776,7 @@ function pacoteTxt(){
 function abrirPonte(){
   const txt = pacoteTxt();
   const d = document.createElement("div");
-  d.style.cssText = "position:fixed;inset:0;background:rgba(4,9,11,.85);z-index:60;display:flex;padding:5vh 5vw";
+  d.className = "modal-veil";
   d.innerHTML = `<div style="background:var(--panel);border:1px solid var(--phos);border-radius:3px;flex:1;
       display:flex;flex-direction:column;padding:14px;gap:9px;overflow:hidden">
     <div class="lab" style="color:var(--phos);font-size:12px">Ponte manual</div>
@@ -735,22 +804,21 @@ function abrirPonte(){
     const r = d.querySelector("#_pr").value.trim();
     if (!r){ d.querySelector("#_pm").style.color="var(--over)"; d.querySelector("#_pm").textContent="cole a resposta primeiro"; return; }
     const pergunta = $("#prompt").value.trim();
-    if (pergunta){ addTurn({role:"user", content:pergunta}); $("#prompt").value = ""; }
+    if (pergunta){ addTurn({role:"user", content:pergunta}); $("#prompt").value = ""; fitPrompt(); }
     addTurn({role:"assistant", provider:"ponte", model:"ponte manual", content:r});
     d.remove();
     setStatus("Resposta trazida pela ponte — está no histórico como qualquer outra.");
   };
 }
 
-/* O <datalist> filtra pelo texto já digitado — com 342 modelos, ele parece
-   quebrado. Isto é uma lista de verdade: busca, contagem e os :free em destaque. */
+/* ===================== LISTA DE MODELOS ===================== */
 function abrirLista(id){
   const P = PROVIDERS[id], C = S.chans[id];
   const todos = C.found || P.models || [];
   if (!todos.length){ setStatus("Clique em 'testar chave' primeiro para buscar a lista.", true); return; }
 
   const d = document.createElement("div");
-  d.style.cssText = "position:fixed;inset:0;background:rgba(4,9,11,.85);z-index:60;display:flex;padding:6vh 10vw";
+  d.className = "modal-veil";
   d.innerHTML = `<div style="background:var(--panel);border:1px solid var(--rule);border-radius:3px;flex:1;
       display:flex;flex-direction:column;padding:14px;gap:9px;overflow:hidden">
     <div class="row">
@@ -789,23 +857,104 @@ function abrirLista(id){
   q.focus();
 }
 
+/* ===================== MANUAL DAS CHAVES ===================== */
+function abrirManual(){
+  const d = document.createElement("div");
+  d.className = "modal-veil";
+  d.innerHTML = `<div class="manual-box">
+    <div class="manual-hd">
+      <span class="lab" style="color:var(--amber);font-size:13px">Manual — como conseguir as chaves de API</span>
+      <span style="flex:1"></span>
+      <button class="tiny ghost mx">✕ fechar</button>
+    </div>
+    <div class="manual-body">
+
+      <div class="mnote">
+        A Bancada IA não vem com nenhuma chave dentro. Cada pessoa cria a
+        <b>sua própria chave, de graça</b>, no site de cada IA — leva uns 2 minutos por canal.
+        A chave é como a senha de um canal: cole no campo <b>Chave</b> do canal correspondente
+        no rack (lado esquerdo), clique em <b>testar chave</b>, e pronto.
+      </div>
+
+      <h3>Gemini (Google AI Studio)</h3>
+      <ol>
+        <li>Entre em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> e faça login com a sua conta Google (a mesma do Gmail serve).</li>
+        <li>Clique em <b>Create API key</b> (ou "Criar chave de API").</li>
+        <li>Se pedir para escolher um projeto, aceite o que ele sugerir — não precisa criar nada no Google Cloud.</li>
+        <li>Copie a chave gerada (começa com <code>AIza</code> ou <code>AQ.</code>).</li>
+        <li>Cole no campo <b>Chave</b> do canal <b>Gemini</b> aqui na Bancada e clique em <b>testar chave</b>.</li>
+      </ol>
+      <p class="hint">Plano grátis: cota diária por modelo (em torno de 20 requisições/dia nos modelos principais), que zera às 5h da manhã no horário de Brasília. A mesma chave também serve para o gerador de imagens (Nano Banana).</p>
+
+      <h3>Groq</h3>
+      <ol>
+        <li>Entre em <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a> e crie uma conta (dá para entrar com Google ou GitHub).</li>
+        <li>No menu, vá em <b>API Keys</b> — ou direto em <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>.</li>
+        <li>Clique em <b>Create API Key</b>, dê um nome qualquer (ex.: "bancada").</li>
+        <li><b>Copie a chave na hora</b> (começa com <code>gsk_</code>) — o Groq só mostra ela uma vez. Se perder, é só apagar e criar outra.</li>
+        <li>Cole no campo <b>Chave</b> do canal <b>Groq</b> e clique em <b>testar chave</b>.</li>
+      </ol>
+      <p class="hint">Plano grátis generoso em requisições por dia, mas com poucos tokens por minuto — ótimo para perguntas curtas e respostas rápidas.</p>
+
+      <h3>OpenRouter</h3>
+      <ol>
+        <li>Entre em <a href="https://openrouter.ai" target="_blank" rel="noopener">openrouter.ai</a> e crie uma conta (Google ou GitHub).</li>
+        <li>Clique no seu avatar → <b>Keys</b> — ou direto em <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>.</li>
+        <li>Clique em <b>Create Key</b>, dê um nome, e copie a chave (começa com <code>sk-or-</code>).</li>
+        <li>Cole no campo <b>Chave</b> do canal <b>OpenRouter</b> e clique em <b>testar chave</b>.</li>
+        <li>Use só modelos com <code>:free</code> no nome — o botão <b>▾</b> ao lado do modelo abre a lista com filtro "só :free".</li>
+      </ol>
+      <p class="hint">O OpenRouter é um agregador: uma chave só dá acesso a dezenas de modelos de fabricantes diferentes. Alguns <code>:free</code> exigem que você autorize o uso dos seus prompts para treino em <a href="https://openrouter.ai/settings/privacy" target="_blank" rel="noopener">Settings → Privacy</a> — se o código for seu, não ligue isso; escolha outro :free.</p>
+
+      <h3>E o Claude / ChatGPT?</h3>
+      <p>Claude e ChatGPT não têm API gratuita. Mas se você já paga a assinatura do chat deles,
+      use o botão <b>Ponte</b> aqui no console: ele empacota todo o contexto da tarefa para você
+      colar no chat, e a resposta que você trouxer de volta entra no histórico como um turno normal.</p>
+
+      <h3>Segurança das chaves</h3>
+      <div class="mwarn">
+        <b>Chave é senha.</b> Quem tiver a sua chave gasta a sua cota em seu nome.
+        <ul style="margin:6px 0 0 18px">
+          <li>A Bancada guarda as chaves só no <code>localStorage</code> deste navegador — elas nunca saem no <b>Exportar</b>.</li>
+          <li>Nunca poste a chave em fórum, print, vídeo ou repositório do GitHub.</li>
+          <li>Vazou? Entre no site do provedor, apague a chave (revoke) e crie outra. Leva 1 minuto.</li>
+          <li>Trocou de computador ou navegador? É só colar as chaves de novo — ou criar novas.</li>
+        </ul>
+      </div>
+
+      <h3>Deu erro?</h3>
+      <p>Cada canal tem um botão <b>diagnóstico</b> que mede o caminho inteiro (chave → lista de modelos → chamada real)
+      e diz exatamente qual etapa falhou. Os erros mais comuns:</p>
+      <ol>
+        <li><b>Chave rejeitada</b> — colou com espaço ou quebra de linha junto. Recole só a chave.</li>
+        <li><b>429</b> — a cota do dia acabou nesse canal. Use outro canal ou espere zerar.</li>
+        <li><b>Modelo não existe / aposentado</b> — clique em <b>testar chave</b>: ele busca a lista real e escolhe um que responda.</li>
+        <li><b>Modelo pago</b> — o modelo escolhido não está no plano grátis. Troque pelo botão <b>▾</b>.</li>
+      </ol>
+    </div>
+  </div>`;
+  document.body.appendChild(d);
+  d.querySelector(".mx").onclick = ()=>d.remove();
+  d.addEventListener("click", e=>{ if (e.target === d) d.remove(); });
+}
+
+/* ========================= RENDER: PERFIS ========================= */
 function renderPerfis(){
   const el = $("#perfis"); el.innerHTML = "";
   const opts = {...PERFIS, custom:{nome:"Personalizado"}};
   for (const k in opts){
     const b = document.createElement("button");
-    b.className = "mode-btn" + (S.profile===k ? " sel" : "");
+    b.className = "mode-btn tiny" + (S.profile===k ? " sel" : "");
     b.textContent = opts[k].nome;
     b.onclick = ()=>{
       S.profile = k;
-      // Ao entrar no personalizado, começa do perfil atual em vez de folha em branco.
       if (k === "custom" && !S.systemCustom) S.systemCustom = (PERFIS[S.profile] || PERFIS.geral).txt;
       save(); renderPerfis(); renderMeters();
     };
     el.appendChild(b);
   }
   const n = tok(sysTxt());
-  el.insertAdjacentHTML("beforeend", `<span class="hint" style="margin-left:4px">${n} tok em cada envio</span>`);
+  el.insertAdjacentHTML("beforeend", `<span class="hint" style="margin-left:4px">${n} tok/envio</span>`);
   const ta = $("#sysCustom");
   ta.style.display = S.profile === "custom" ? "block" : "none";
   if (S.profile === "custom") ta.value = S.systemCustom || "";
@@ -845,7 +994,7 @@ function renderChans(){
           <input type="text" class="rpd" value="${esc(rpdOf(id))}" style="width:48px;text-align:center" title="requisições por dia deste modelo">
         </div>
         <div class="row" style="margin-top:4px"><span class="probe-out hint" style="flex:1"></span></div>
-        <p class="hint" style="margin-top:5px">Chave em <a href="${P.keyUrl}" target="_blank" rel="noopener">${new URL(P.keyUrl).host}</a></p>
+        <p class="hint" style="margin-top:5px">Chave em <a href="${P.keyUrl}" target="_blank" rel="noopener">${new URL(P.keyUrl).host}</a> — passo a passo no <b>Manual</b></p>
       </div>`;
     const toggle = ()=>{ C.on = !C.on; save(); renderChans(); renderMeters(); renderRouterPick(); };
     d.querySelector(".chan-hd").addEventListener("click", toggle);
@@ -893,20 +1042,14 @@ function renderChans(){
   }
 }
 
-/* ========================= RENDER: MEDIDORES =========================
-   Isto é o coração do painel. TPM é o que mata, não o preço.
-   Passou de 100%: over-range. Um multímetro mostraria "1." — este mostra também.
-   ================================================================== */
+/* ========================= RENDER: MEDIDORES ========================= */
 function renderMeters(){
   const el = $("#loadMeters"); el.innerHTML = "";
   const t = ctxTokens();
   const live = Object.keys(PROVIDERS).filter(id=>S.chans[id].on);
-  if (!live.length){ el.innerHTML = `<div class="empty">Ligue um canal para ver a carga.</div>`; return; }
+  if (!live.length){ el.innerHTML = `<div class="empty">Ligue um canal para ver a carga.</div>`; }
   for (const id of live){
     const P = PROVIDERS[id];
-    // O que barra uma requisição é o MENOR entre o TPM e a janela do modelo.
-    // No Gemini o TPM aperta antes (250K < 1M); no Cerebras é o contrário
-    // (131K de janela contra 500K de TPM). Medir só o TPM mentiria.
     const teto = Math.min(P.tpm, P.ctx || P.tpm);
     const qual = teto === P.ctx && P.ctx < P.tpm ? "contexto" : "TPM";
     const pct = (t / teto) * 100, over = pct > 100;
@@ -929,9 +1072,7 @@ function renderMeters(){
       <div class="meter-sub">${dover ? "esgotada — zera às 5h" : (cap-n)+" envios restantes"}</div>`;
     el.appendChild(d);
   }
-  // Júri gasta uma requisição por canal; pipeline gasta três. Com 20/dia
-  // no Gemini, isso não é detalhe.
-  const cost = S.mode === "jury" ? live.length : S.mode === "pipeline" ? 3 : 1;
+  const cost = S.mode === "jury" ? Math.max(live.length,1) : S.mode === "pipeline" ? 3 : 1;
   $("#ctxTag").textContent = t.toLocaleString("pt-BR") + " tok · " + cost + (cost>1?" envios":" envio");
 }
 
@@ -962,7 +1103,7 @@ function renderFiles(){
 }
 function editFile(f){
   const d = document.createElement("div");
-  d.style.cssText = "position:fixed;inset:0;background:rgba(4,9,11,.8);z-index:50;display:flex;padding:5vh 5vw";
+  d.className = "modal-veil";
   d.innerHTML = `<div style="background:var(--panel);border:1px solid var(--rule);border-radius:3px;flex:1;display:flex;flex-direction:column;padding:12px;gap:8px">
     <input type="text" id="_fn" value="${esc(f.name)}">
     <textarea id="_fc" style="flex:1;font-size:12px">${esc(f.content)}</textarea>
@@ -980,7 +1121,7 @@ function editFile(f){
   };
 }
 
-/* ========================= RENDER: HISTÓRICO ========================= */
+/* ========================= RENDER: HISTÓRICO (no LCD) ========================= */
 function usoTxt(u){
   if (!u) return "";
   if (typeof u === "number") return " · " + u + " tot";
@@ -991,20 +1132,85 @@ function usoTxt(u){
   return p.length ? " · " + p.join(" · ") : "";
 }
 
-function renderTurns(){
+function lcdScrollBottom(){
+  const lcd = $("#lcd");
+  requestAnimationFrame(()=>{ lcd.scrollTop = lcd.scrollHeight; });
+}
+
+function renderTurns(scroll){
   const el = $("#turns"); el.innerHTML = "";
-  if (!S.turns.length){ el.innerHTML = `<div class="empty">Vazio. Só os turnos fixados (■) entram no contexto da próxima chamada — é assim que a tarefa continua entre IAs diferentes.</div>`; return; }
+  if (!S.turns.length){
+    el.innerHTML = `<div class="lcd-idle">
+      <svg class="mestre" viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="Mestre dormindo em pé, com a cabaça na mão, esperando desafiante">
+        <!-- Zzz do sono -->
+        <g fill="none" stroke="#232b20" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="zzz">
+          <path d="M150 46 h20 l-20 18 h20" class="z1"/>
+          <path d="M180 24 h15 l-15 14 h15" class="z2"/>
+          <path d="M202 10 h11 l-11 10 h11" class="z3"/>
+        </g>
+        <!-- cabaças nas costas -->
+        <g stroke="#232b20" stroke-width="3">
+          <circle cx="172" cy="128" r="19" fill="#9a6a34"/>
+          <circle cx="184" cy="164" r="15" fill="#8a5a2a"/>
+          <path d="M150 118 q22 -6 34 4" fill="none" stroke-width="3.5"/>
+        </g>
+        <!-- corpo: túnica, em pé, levemente pendendo -->
+        <g stroke="#232b20" stroke-width="3.5" stroke-linejoin="round">
+          <path d="M96 116 q-8 60 -12 128 q22 12 74 0 q-2 -70 -10 -128 q-26 -12 -52 0 z" fill="#6b763f"/>
+          <!-- faixa da cintura -->
+          <path d="M88 178 q34 10 66 0" fill="none" stroke-width="5"/>
+          <!-- braço esquerdo caído segurando a cabaça pelo cordão -->
+          <path d="M96 128 q-16 34 -12 66" fill="none" stroke-width="9" stroke-linecap="round"/>
+          <line x1="84" y1="196" x2="82" y2="216" stroke-width="3"/>
+          <path d="M82 218 q-9 3 -9 13 q0 12 9 12 q9 0 9 -12 q0 -10 -9 -13 z" fill="#9a6a34"/>
+          <ellipse cx="82" cy="217" rx="4.5" ry="3.5" fill="#7a4a22"/>
+          <!-- braço direito dobrado sobre a barriga -->
+          <path d="M144 132 q10 26 -14 40" fill="none" stroke-width="9" stroke-linecap="round"/>
+        </g>
+        <!-- cabeça caída pro lado, dormindo -->
+        <g transform="rotate(12 122 92)">
+          <ellipse cx="122" cy="94" rx="26" ry="24" fill="#e8dcc6" stroke="#232b20" stroke-width="3.5"/>
+          <!-- cabelo branco cobrindo os olhos -->
+          <path d="M96 88 q4 -26 26 -26 q24 0 27 26 q-6 10 -27 10 q-20 0 -26 -10 z" fill="#f2efe6" stroke="#232b20" stroke-width="3"/>
+          <!-- boné verde -->
+          <path d="M94 76 q6 -22 28 -22 q23 0 28 22 q-28 -10 -56 0 z" fill="#5f6b3f" stroke="#232b20" stroke-width="3.5"/>
+          <ellipse cx="122" cy="57" rx="9" ry="5" fill="#5f6b3f" stroke="#232b20" stroke-width="3"/>
+          <!-- barba branca -->
+          <path d="M108 106 q14 22 28 0 q-4 22 -14 24 q-10 -2 -14 -24 z" fill="#f2efe6" stroke="#232b20" stroke-width="3"/>
+          <!-- nariz e boca serena -->
+          <path d="M120 98 q3 4 0 7" fill="none" stroke="#232b20" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+        <!-- pés -->
+        <g stroke="#232b20" stroke-width="3">
+          <ellipse cx="104" cy="252" rx="14" ry="6" fill="#232b20"/>
+          <ellipse cx="140" cy="252" rx="14" ry="6" fill="#232b20"/>
+        </g>
+        <!-- chão -->
+        <line x1="46" y1="260" x2="200" y2="260" stroke="#232b20" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+        <!-- letreiro estilo fliperama -->
+        <text x="120" y="284" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="600"
+              font-size="12" letter-spacing="2" fill="#232b20">AGUARDANDO COMANDO…</text>
+        <text x="120" y="298" text-anchor="middle" font-family="IBM Plex Mono,monospace"
+              font-size="9.5" letter-spacing="1.5" fill="#5d6a56">PLAYER 1: MESTRE DORMINDO</text>
+      </svg>
+      <p>A bancada está em repouso. Ligue um canal no rack, escreva embaixo e aperte Enviar.
+      Só os turnos fixados (■) entram no contexto da próxima chamada — é assim que a tarefa
+      continua entre IAs diferentes.</p>
+    </div>`;
+    return;
+  }
   S.turns.forEach(t=>{
     const d = document.createElement("div");
     d.className = "turn " + (t.pinned?"pinned ":"") + (t.role==="user"?"user":"");
     const who = t.role === "user" ? "Você" : t.provider === "ponte" ? "Ponte" : (PROVIDERS[t.provider]?.name || "IA");
     d.innerHTML = `
       <div class="turn-hd">
-        <span class="who" style="color:${t.role==="user"?"var(--phos)":"var(--amber)"}">${who}</span>
+        <span class="who">${who}</span>
         <span class="meta">${t.model?esc(t.model)+" · ":""}${tok(t.content).toLocaleString("pt-BR")} tok${usoTxt(t.used)}</span>
-        <button class="tiny ghost pin">${t.pinned?"■ no contexto":"□ fora"}</button>
-        <button class="tiny ghost cp">copiar</button>
-        <button class="tiny ghost rm">×</button>
+        <button class="tiny pin">${t.pinned?"■ no contexto":"□ fora"}</button>
+        <button class="tiny cp">copiar</button>
+        <button class="tiny rm">×</button>
       </div>
       <div class="turn-body ${t.content.length>600?"collapsed":""}">${esc(t.content)}</div>`;
     const body = d.querySelector(".turn-body");
@@ -1014,6 +1220,7 @@ function renderTurns(){
     d.querySelector(".rm").addEventListener("click", ()=>{ S.turns = S.turns.filter(x=>x.id!==t.id); save(); renderTurns(); renderMeters(); });
     el.appendChild(d);
   });
+  if (scroll !== false) lcdScrollBottom();
 }
 
 /* ========================= MODOS ========================= */
@@ -1023,7 +1230,8 @@ const MODE_HINT = {
   pipeline:"Canal 1 escreve, canal 2 revisa, canal 1 consolida. Gasta cota de três lugares."
 };
 function renderMode(){
-  document.querySelectorAll(".mode-btn").forEach(b=>b.classList.toggle("sel", b.dataset.mode===S.mode));
+  document.querySelectorAll(".mode-btn[data-mode]").forEach(b=>b.classList.toggle("sel", b.dataset.mode===S.mode));
+  document.querySelectorAll("#annun .an").forEach(a=>a.classList.toggle("lit", a.dataset.an===S.mode));
   $("#modeHint").textContent = MODE_HINT[S.mode];
   $("#routerPick").style.display = S.mode === "router" ? "flex" : "none";
   renderRouterPick();
@@ -1036,7 +1244,7 @@ function renderRouterPick(){
   el.innerHTML = `<span class="lab" style="font-size:10px;color:var(--dim)">Canal</span>`;
   live.forEach(id=>{
     const b = document.createElement("button");
-    b.className = "mode-btn" + (S.router===id?" sel":"");
+    b.className = "mode-btn tiny" + (S.router===id?" sel":"");
     b.textContent = PROVIDERS[id].name;
     b.onclick = ()=>{ S.router = id; save(); renderRouterPick(); };
     el.appendChild(b);
@@ -1053,13 +1261,16 @@ function addTurn(o){
   S.turns.push(t); save(); renderTurns(); renderMeters();
   return t.id;
 }
-/* Chamada que falhou não deixa rastro: o turno some do histórico e o texto
-   volta pro campo. Senão a pergunta fica lá, fixada, e você paga por ela na
-   próxima requisição sem nunca ter recebido resposta. */
 function undoTurn(id, text){
   S.turns = S.turns.filter(x=>x.id !== id);
-  if (text && !$("#prompt").value.trim()) $("#prompt").value = text;
+  if (text && !$("#prompt").value.trim()){ $("#prompt").value = text; fitPrompt(); }
   save(); renderTurns(); renderMeters();
+}
+
+function fitPrompt(){
+  const p = $("#prompt");
+  p.style.height = "auto";
+  p.style.height = Math.min(p.scrollHeight, 180) + "px";
 }
 
 async function send(){
@@ -1068,7 +1279,7 @@ async function send(){
   const text = $("#prompt").value.trim();
   if (!text){ setStatus("Escreva alguma coisa.", true); return; }
   const live = Object.keys(PROVIDERS).filter(id=>S.chans[id].on && S.chans[id].key.trim());
-  if (!live.length){ setStatus("Nenhum canal ligado com chave.", true); return; }
+  if (!live.length){ setStatus("Nenhum canal ligado com chave. Veja o Manual para criar as suas.", true); return; }
 
   busy = true; $("#btnSend").disabled = true;
 
@@ -1081,17 +1292,15 @@ async function send(){
       const id = live.includes(S.router) ? S.router : live[0];
       setStatus(`Falando com ${PROVIDERS[id].name}…`);
       uid_user = addTurn({role:"user", content:text});
-      $("#prompt").value = "";
+      $("#prompt").value = ""; fitPrompt();
       const r = await callChannel(id, msgs);
       addTurn({role:"assistant", provider:id, model:S.chans[id].model, content:r.text, used:r.used});
       setStatus("");
     }
 
     else if (S.mode === "jury"){
-      // A pergunta só fixa no contexto se uma resposta for adotada.
-      // Senão vira pergunta órfã e a próxima rodada confunde os modelos.
       uid_user = addTurn({role:"user", content:text, pinned:false});
-      $("#prompt").value = "";
+      $("#prompt").value = ""; fitPrompt();
       $("#juryWrap").style.display = "block";
       const jury = $("#jury"); jury.innerHTML = "";
       setStatus(`${vivos.length} canais respondendo…` + (pulados.length ? ` (desligados, pulados: ${nomes(pulados)})` : ""));
@@ -1102,6 +1311,7 @@ async function send(){
           <span class="spin"></span></div><div class="jcol-body"></div>`;
         jury.appendChild(c); cols[id] = c;
       });
+      lcdScrollBottom();
       await Promise.all(vivos.map(async id=>{
         const c = cols[id];
         try{
@@ -1109,7 +1319,7 @@ async function send(){
           c.querySelector(".spin").remove();
           c.querySelector(".jcol-body").textContent = r.text;
           const hd = c.querySelector(".jcol-hd");
-          const b = document.createElement("button"); b.className = "tiny ghost"; b.textContent = "adotar";
+          const b = document.createElement("button"); b.className = "tiny"; b.textContent = "adotar";
           b.onclick = ()=>{
             const q = S.turns.find(x=>x.id===uid_user); if (q) q.pinned = true;
             addTurn({role:"assistant", provider:id, model:S.chans[id].model, content:r.text, used:r.used});
@@ -1123,14 +1333,14 @@ async function send(){
           c.querySelector(".jcol-body").textContent = "✕ " + e.message;
         }
       }));
-      setStatus("Compare e adote uma — adotar fixa a pergunta e a resposta no contexto. Sem adotar, a rodada fica de fora." + (pulados.length ? " Pulados (desligados): "+nomes(pulados)+"." : ""));
+      setStatus("Compare e adote uma — adotar fixa a pergunta e a resposta no contexto." + (pulados.length ? " Pulados (desligados): "+nomes(pulados)+"." : ""));
     }
 
     else { // pipeline
       if (vivos.length < 2){ setStatus("Pipeline precisa de 2 canais de pé." + (pulados.length ? " Desligados: "+nomes(pulados)+"." : ""), true); busy=false; $("#btnSend").disabled=false; return; }
       const [a, b] = vivos;
       uid_user = addTurn({role:"user", content:text});
-      $("#prompt").value = "";
+      $("#prompt").value = ""; fitPrompt();
 
       setStatus(`1/3 ${PROVIDERS[a].name} escrevendo…`);
       const r1 = await callChannel(a, msgs);
@@ -1150,7 +1360,6 @@ async function send(){
       setStatus("Pipeline concluído. As etapas 1 e 2 ficaram fora do contexto — desfixadas.");
     }
   }catch(e){
-    // Se nenhuma resposta entrou, a pergunta não fica no histórico.
     const houveResposta = S.turns.some(x=>x.role==="assistant" && x.ts > (S.turns.find(y=>y.id===uid_user)?.ts || Infinity));
     if (uid_user && !houveResposta) undoTurn(uid_user, text);
     setStatus(e.message, true);
@@ -1161,7 +1370,7 @@ async function send(){
 /* ========================= EXPORT / IMPORT ========================= */
 function exportState(){
   const out = JSON.parse(JSON.stringify(S));
-  for (const id in out.chans) out.chans[id].key = "";   // chave nunca sai daqui
+  for (const id in out.chans) out.chans[id].key = "";
   const blob = new Blob([JSON.stringify(out, null, 2)], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -1177,11 +1386,11 @@ function importState(){
     r.onload = () => {
       try{
         const p = JSON.parse(r.result);
-        const keys = {}; for (const id in S.chans) keys[id] = S.chans[id].key;  // preserva chaves locais
+        const keys = {}; for (const id in S.chans) keys[id] = S.chans[id].key;
         S = Object.assign(S, p);
         for (const id in PROVIDERS){
           S.chans[id] = Object.assign({on:false,key:"",model:PROVIDERS[id].models[0] || ""}, S.chans[id]||{});
-      if (typeof S.chans[id].model !== "string") S.chans[id].model = PROVIDERS[id].models[0] || "";
+          if (typeof S.chans[id].model !== "string") S.chans[id].model = PROVIDERS[id].models[0] || "";
           if (!S.chans[id].key) S.chans[id].key = keys[id] || "";
         }
         save(); boot(); setStatus("Tarefa carregada.");
@@ -1192,44 +1401,12 @@ function importState(){
   i.click();
 }
 
-/* ========================= BOOT ========================= */
-function boot(){
-  $("#taskTitle").value = S.title;
-  $("#brief").value = S.brief;
-  renderPerfis(); renderChans(); renderFiles(); renderTurns(); renderMode(); renderMeters();
-}
-
-load();
-boot();
-
-$("#taskTitle").addEventListener("input", e=>{ S.title = e.target.value; save(); });
-$("#brief").addEventListener("input", e=>{ S.brief = e.target.value; save(); renderMeters(); });
-$("#sysCustom").addEventListener("input", e=>{ S.systemCustom = e.target.value; save(); renderPerfis(); renderMeters(); });
-$("#prompt").addEventListener("input", renderMeters);
-$("#prompt").addEventListener("keydown", e=>{ if (e.key==="Enter" && (e.ctrlKey||e.metaKey)) send(); });
-$("#btnSend").addEventListener("click", send);
-/* ===================== GERADOR DE IMAGENS =====================
-   A cereja do bolo. Pollinations.ai devolve a imagem direto numa URL,
-   sem chave e sem cota formal — o único canal que não pede nada.
-   A imagem carrega via <img> (contorna CORS); o download busca o blob.
-   O modal é criado uma vez e só esconde ao fechar: o histórico da
-   sessão sobrevive. Nada disso entra no localStorage — imagem é URL
-   reconstituível (prompt + seed), não estado.
-   Regra de layout que importa: a imagem NUNCA dita o tamanho de nada.
-   O palco tem altura fixada pelo flex (min-height:0 + overflow:hidden)
-   e a imagem se encaixa nele com object-fit — não o contrário. Foi a
-   falta disso que empurrou o fechar e o histórico pra fora da tela. */
-/* Dois motores. Pollinations (Flux) é grátis e sem chave, mas embaralha
-   texto dentro da imagem. O Nano Banana (gemini-2.5-flash-image) renderiza
-   texto legível — "LM324" sai "LM324" — e entra de graça pela MESMA chave
-   do canal Gemini, com cota própria de imagens (separada da de texto).
-   O Nano Banana Pro ficou de fora: não tem free tier de API. */
+/* ===================== GERADOR DE IMAGENS ===================== */
 const IMG_MOTORES = {
   pollinations: "Pollinations · Flux — sem chave",
   gemini:       "Gemini · Nano Banana — chave do canal"
 };
 const IMG_GEMINI_MODEL = "gemini-2.5-flash-image";
-/* O Nano Banana não aceita largura/altura livres — só proporção. */
 const IMG_ASPECT = t => t === "1024x576" ? "16:9" : t === "576x1024" ? "9:16" : "1:1";
 
 const IMG_ESTILOS = {
@@ -1242,7 +1419,7 @@ const IMG_ESTILOS = {
 };
 const IMG_TAM = ["1024x1024","768x768","512x512","1024x576","576x1024"];
 let imgModal = null, imgSel = -1;
-const imgHist = [];   // {url, prompt} — mais recente primeiro
+const imgHist = [];
 
 const imgURL = (texto, w, h, estilo, seed) =>
   "https://image.pollinations.ai/prompt/" + encodeURIComponent(texto.trim() + (IMG_ESTILOS[estilo]?.[0] || "")) +
@@ -1318,8 +1495,6 @@ function abrirImagem(){
   const bg = q(".ig"), bb = q(".ib");
   const aviso = (m, ruim) => { st.textContent = m; st.style.color = ruim ? "var(--over)" : "var(--dim)"; };
 
-  /* Selecionar = mostrar no palco + destacar a miniatura + apontar o download.
-     Uma função só, para clique na miniatura e para imagem recém-gerada. */
   const seleciona = i => {
     if (!imgHist[i]) return;
     imgSel = i;
@@ -1340,7 +1515,7 @@ function abrirImagem(){
     bg.disabled = false; bg.textContent = "Gerar";
     if (!ok){
       ic.innerHTML = '<span class="hint">nada ainda</span>';
-      if (imgSel >= 0) seleciona(imgSel);   // volta a anterior ao palco
+      if (imgSel >= 0) seleciona(imgSel);
     }
   };
   const guarda = (url, texto) => {
@@ -1348,7 +1523,6 @@ function abrirImagem(){
     pintaHist(); seleciona(0);
   };
 
-  /* Pollinations: a própria URL é a imagem; carregar o <img> é a chamada. */
   const geraPollinations = texto => {
     const [w,h] = q(".it").value.split("x").map(Number);
     const url = imgURL(texto, w, h, q(".ie").value, Math.floor(Math.random()*1e6));
@@ -1358,8 +1532,6 @@ function abrirImagem(){
     img.src = url;
   };
 
-  /* Gemini: POST no generateContent, imagem volta em base64 → vira blob URL.
-     Mesma chave do canal Gemini; cota de imagem é separada da de texto. */
   const geraGemini = async texto => {
     const k = (S.chans.gemini?.key || "").trim();
     if (!k){ aviso("Cole a chave no canal Gemini do rack primeiro — é a mesma da API de texto.", true); fim(false); return; }
@@ -1406,7 +1578,7 @@ function abrirImagem(){
     if (!item) return;
     bb.disabled = true; bb.textContent = "Baixando…";
     try{
-      const local = item.url.startsWith("blob:");   // Nano Banana já está na memória
+      const local = item.url.startsWith("blob:");
       const href = local ? item.url : URL.createObjectURL(await (await fetch(item.url)).blob());
       const a = document.createElement("a");
       a.href = href;
@@ -1420,7 +1592,6 @@ function abrirImagem(){
     bb.disabled = false; bb.textContent = "Baixar a selecionada";
   };
 
-  /* Três saídas, porque uma só não bastou: botão, Esc, e clique no escuro. */
   q(".ix").onclick = fecharImagem;
   imgModal.addEventListener("click", e => { if (e.target === imgModal) fecharImagem(); });
   document.addEventListener("keydown", e => {
@@ -1430,6 +1601,27 @@ function abrirImagem(){
   ip.focus();
 }
 
+/* ========================= BOOT ========================= */
+function boot(){
+  $("#taskTitle").value = S.title;
+  $("#brief").value = S.brief;
+  renderPerfis(); renderChans(); renderFiles(); renderTurns(); renderMode(); renderMeters();
+}
+
+load();
+boot();
+fitPrompt();
+
+$("#taskTitle").addEventListener("input", e=>{ S.title = e.target.value; save(); });
+$("#brief").addEventListener("input", e=>{ S.brief = e.target.value; save(); renderMeters(); });
+$("#sysCustom").addEventListener("input", e=>{ S.systemCustom = e.target.value; save(); renderPerfis(); renderMeters(); });
+$("#prompt").addEventListener("input", ()=>{ fitPrompt(); renderMeters(); });
+/* Enter envia; Shift+Enter quebra linha; Ctrl+Enter também envia. */
+$("#prompt").addEventListener("keydown", e=>{
+  if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send(); }
+});
+$("#btnSend").addEventListener("click", send);
+$("#btnManual").addEventListener("click", abrirManual);
 $("#btnPonte").addEventListener("click", abrirPonte);
 $("#btnImg").addEventListener("click", abrirImagem);
 $("#btnExport").addEventListener("click", exportState);
@@ -1444,9 +1636,9 @@ $("#btnClearTurns").addEventListener("click", ()=>{
 });
 $("#btnWipe").addEventListener("click", ()=>{
   if (!confirm("Apaga missão, arquivos e histórico. As chaves ficam. Continuar?")) return;
-  S.title=""; S.brief=""; S.files=[]; S.turns=[]; save(); boot();  // perfil e chaves ficam
+  S.title=""; S.brief=""; S.files=[]; S.turns=[]; save(); boot();
 });
-document.querySelectorAll(".mode-btn").forEach(b=>b.addEventListener("click", ()=>{ S.mode = b.dataset.mode; save(); renderMode(); renderMeters(); }));
+document.querySelectorAll(".mode-btn[data-mode]").forEach(b=>b.addEventListener("click", ()=>{ S.mode = b.dataset.mode; save(); renderMode(); renderMeters(); }));
 $("#btnAddFile").addEventListener("click", ()=>{
   const f = {id:uid(), name:"trecho.mq5", content:"", on:true};
   S.files.push(f); save(); renderFiles(); editFile(f);
